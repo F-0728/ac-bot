@@ -1,2 +1,2 @@
 # ac-bot
-A discord bot to send a message when members solve AtCoder problems
+AtCoderの問題を解いた際，Discordに自動で投稿が行われる仕組みをGASで構築したので，サンプルを置いておきます．
