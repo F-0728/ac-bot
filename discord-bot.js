@@ -1,6 +1,7 @@
 const WEBHOOK_URL = "https://discord.com/api/webhooks/***"
 
-const spreadSheet = SpreadsheetApp.openById("***SpreadSheetのID***");
+// 記録用
+const spreadSheet = SpreadsheetApp.openById("***");
 
 function fetchAC(user_id, unix_second) {
     let options = {
@@ -15,20 +16,19 @@ function fetchAC(user_id, unix_second) {
     return ac;
 }
 
-// APIにタイムラグがあるため，15分おきに稼動するが検索は30分前まで行う
-// JavaScriptのDate.nowはミリ秒単位なので下位3桁は無視
 function filterNotChecked(atcoder_id) {
-    let fromUNIX = Math.floor((Date.now()-1800000) / 1000);
+    let sheet = spreadSheet.getSheetByName(atcoder_id);
+    // ユーザーごとに最後にACした時間を記録しておきます
+    let latestSolved = sheet.getRange("A1");
+    // 次はここから叩きます
+    let fromUNIX = latestSolved.getValue() + 1;
     console.log(fromUNIX);
     let acData = fetchAC(atcoder_id, fromUNIX);
-    let sheet = spreadSheet.getSheetByName(atcoder_id);
-    // 30分前まで検索するため，被りを弾く
-    let latestSolved = sheet.getRange("A1");
-    let ac = acData.filter((d) => d.id != latestSolved.getValue());
-    if (ac && ac.length > 0) {
-      latestSolved.setValue(ac[ac.length-1].id);
+    if (acData && acData.length > 0) {
+      // ACデータがあれば，最後にACした時間を更新します
+      latestSolved.setValue(acData[acData.length-1].epoch_second);
     }
-    return ac;
+    return acData;
 }
 
 function createContent(atcoder_id, discord_id) {
@@ -66,6 +66,8 @@ function sendMessage(atcoder_id, discord_id) {
 }
 
 function main() {
-    sendMessage("***atcoderのユーザー名***", "<@***DiscordのユーザーID***>");
+    sendMessage("AtCoderのID", "<@DiscordのID>");
+    // sendMessage("AtCoderのID2", "<@DiscordのID2>");
+    // ユーザー追加はここに足すだけ(スプレッドシートにも新しくシートを作る必要はある)
     return;
 }
